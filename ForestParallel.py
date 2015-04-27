@@ -34,6 +34,7 @@ class ForestParallel:
   
   def predictPar(self, X):
     #predictions using all the cores
+    #TODO: Finish
     if self.rank==0:
       estimators = self.comm.scatter(self.forest.estimators_)
     self.forest.estimators_ = estimators
@@ -43,10 +44,11 @@ class ForestParallel:
       print predictions.shape
   
   def predict_proba(self, X):
-    X = MPI.COMM_WORLD.bcast(X)
-    predictions = self.forest.predict_proba(X)
-    predictions = comm.gather(predictions)
-    return predictions
+    #probability predictions on one core
+    if self.rank==0:
+      predictions = self.forest.predict_proba(X)
+      return predictions
+    return None
 
 def getData():
   #imports data and labels to all cores
