@@ -9,9 +9,12 @@ class ForestParallel:
   size = comm.Get_size()
   estimators = []
   
-  def __init__(self, n_cores=1, n_estimators=10, criterion='gini'):
+  def __init__(self, n_cores=1, n_estimators=10, total_estimators=10, 
+      criterion='gini'):
     self.n_cores = n_cores
-    self.n_estimators = n_estimators
+    self.n_estimators = n_estimators #num trees to calculate at one time
+    self.total_estimators = total_estimators #used for master-slave
+      #load-balancing - should be divisible by n_estimators
     self.criterion = criterion
     self.forest = Forest(n_estimators=n_estimators, criterion=criterion)
   
@@ -23,6 +26,52 @@ class ForestParallel:
     #flatten list
     self.estimators = [tree for sublist in self.estimators for tree in sublist]
     self.forest.estimators_ = self.estimators
+    return self
+  
+  def fitBalanced(self, X, y):
+    #fit using master-slave paradigm for load-balancing
+    #gather all estimators to all cores
+    if self.rank==0:
+      master()
+    else
+      slave(X, y)
+    return self
+  
+  def master(self):
+    status = MPI.Status()
+    estimators = []
+    temp = None  #buffer for estimators from single core
+    
+    #send out initial tasks to slaves
+    for i in xrange(1,size):
+      comm.send(1, dest=i)
+
+    for i in xrange(size-1, total_estimators/n_estimators):
+      comm.Recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
+      comm.send(1, dest=status.source) #send next task
+      
+      estimators.extend(temp) #add estimators to total list
+    
+    #close slaves by sending -1
+    for i in xrange(1,size):
+      comm.send(-1, dest=i)
+    
+    self.estimators = estimators
+    self.forest.estimators_ = self.estimators
+    print estimators
+    
+    return self
+  
+  def slave(self, X, y, worksize):
+    while(True):
+      ind = comm.recv(source=0)
+      if ind==-1:
+        return self
+      
+      self.forest.fit(X, y)
+      
+      #TODO: Figure out how to send/recv estimators?
+      comm.Send(self.forest.estimators_,dest=0,tag=ind)
     return self
   
   def predict(self, X):
@@ -89,9 +138,9 @@ if __name__ == '__main__':
   size = MPI.COMM_WORLD.Get_size()
   
   forest = ForestParallel(n_cores=size, n_estimators=10, criterion='gini')
-  forest.fit(train,trainLabels['status_group'])
+  forest.fitBalanced(train,trainLabels['status_group'])
   
-  predictions = forest.predict(test[features])
+  #predictions = forest.predict(test[features])
   print "done"
   #if MPI.COMM_WORLD.Get_rank()==0:
   #  print predictions.shape
