@@ -52,6 +52,7 @@ class ForestParallel:
     self.forest.set_params(n_estimators=self.total_estimators)
 
     while(len(estimators) < self.total_estimators):
+      temp = None
       temp = self.comm.recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
       self.comm.send(1, dest=status.source) #send next task
       
@@ -70,7 +71,6 @@ class ForestParallel:
   
   def slave(self, X, y):
     while(True):
-      print "waiting"
       ind = self.comm.recv(source=0)
       #print ind
       if ind==-1:
@@ -144,7 +144,8 @@ if __name__ == '__main__':
   train, trainLabels, test, testLabels = getData()
   size = MPI.COMM_WORLD.Get_size()
   
-  forest = ForestParallel(n_cores=size, n_estimators=10, criterion='gini')
+  forest = ForestParallel(n_cores=size, n_estimators=10, total_estimators=100, 
+    criterion='gini')
   forest.fitBalanced(train,trainLabels['status_group'])
   
   predictions = forest.predict(test)
@@ -155,4 +156,4 @@ if __name__ == '__main__':
 
 
   #TODO: more graceful way of closing other cores
-  self.comm.Abort()
+  MPI.COMM_WORLD.Abort()
