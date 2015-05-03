@@ -32,12 +32,12 @@ class ForestParallel:
     #fit using master-slave paradigm for load-balancing
     #gather all estimators to all cores
     if self.rank==0:
-      self.master()
+      self.master(X, y)
     else:
       self.slave(X, y)
     return self
   
-  def master(self):
+  def master(self, X, y):
     status = MPI.Status()
     estimators = []
     temp = None  #buffer for estimators from single core
@@ -45,6 +45,11 @@ class ForestParallel:
     #send out initial tasks to slaves
     for i in xrange(1,size):
       self.comm.send(1, dest=i)
+    
+    #train a single tree to set the forest parameters for convenience
+    self.forest.set_params(n_estimators=1)
+    self.forest.fit(X, y)
+    self.forest.set_params(n_estimators=self.total_estimators)
 
     while(len(estimators) < self.total_estimators):
       temp = self.comm.recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
@@ -150,4 +155,4 @@ if __name__ == '__main__':
 
 
   #TODO: more graceful way of closing other cores
-    #self.comm.Abort()
+  self.comm.Abort()
