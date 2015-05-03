@@ -32,9 +32,9 @@ class ForestParallel:
     #fit using master-slave paradigm for load-balancing
     #gather all estimators to all cores
     if self.rank==0:
-      master()
-    else
-      slave(X, y)
+      self.master()
+    else:
+      self.slave(X, y)
     return self
   
   def master(self):
@@ -44,34 +44,36 @@ class ForestParallel:
     
     #send out initial tasks to slaves
     for i in xrange(1,size):
-      comm.send(1, dest=i)
+      self.comm.send(1, dest=i)
 
-    for i in xrange(size-1, total_estimators/n_estimators):
-      comm.Recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
-      comm.send(1, dest=status.source) #send next task
+    while(len(estimators) < self.total_estimators):
+      temp = self.comm.recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
+      self.comm.send(1, dest=status.source) #send next task
       
       estimators.extend(temp) #add estimators to total list
     
     #close slaves by sending -1
     for i in xrange(1,size):
-      comm.send(-1, dest=i)
+      self.comm.send(-1, dest=i)
+    #TODO: Bug: other cores don't successfully close because they are waiting
+    #to send back their newest forest
     
     self.estimators = estimators
     self.forest.estimators_ = self.estimators
-    print estimators
     
     return self
   
-  def slave(self, X, y, worksize):
+  def slave(self, X, y):
     while(True):
-      ind = comm.recv(source=0)
+      print "waiting"
+      ind = self.comm.recv(source=0)
+      #print ind
       if ind==-1:
         return self
       
       self.forest.fit(X, y)
-      
-      #TODO: Figure out how to send/recv estimators?
-      comm.Send(self.forest.estimators_,dest=0,tag=ind)
+
+      self.comm.send(self.forest.estimators_,dest=0,tag=ind)
     return self
   
   def predict(self, X):
@@ -140,9 +142,12 @@ if __name__ == '__main__':
   forest = ForestParallel(n_cores=size, n_estimators=10, criterion='gini')
   forest.fitBalanced(train,trainLabels['status_group'])
   
-  #predictions = forest.predict(test[features])
+  predictions = forest.predict(test)
   print "done"
   #if MPI.COMM_WORLD.Get_rank()==0:
   #  print predictions.shape
-  #print predictions[:10]
+  print predictions[:10]
 
+
+  #TODO: more graceful way of closing other cores
+    #self.comm.Abort()
