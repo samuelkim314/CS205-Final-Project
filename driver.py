@@ -19,88 +19,89 @@ if __name__ == '__main__':
     train_labels = pd.read_csv('train_label.csv')
     compete_data = pd.read_csv('test.csv')
     
-    N = train_data.shape[0]
-    
-    train_data.fillna("was_nan",inplace=True)
-    compete_data.fillna("was_nan",inplace=True)
-
-    
     #Make a pd.Series with training labels
     label = train_labels.status_group
-    #List of categ features
-    all_feat = list(train_data.columns)
-    #Irrelevant features
-    irr_feat=[]
     #List of numerical features
     numer_feat = ['id', 'amount_tsh', 'date_recorded', 'gps_height', 'longitude', 'latitude', 'construction_year', 'population']
-    #Get the list of categorical features 
-    cfl = list(set(all_feat) - set(numer_feat) - set(irr_feat))
+	
+	#Work with copies of the data
+    td = train_data.copy()
+    cd = compete_data.copy()
+    #Make a pd.Series with training labels
+    label = train_labels.status_group
     
-        
-    #Preprocess the data and add rotated GPS coords to it
-    ntest = 400#N
-    
-    td = train_data[:ntest].copy()
-    cd = compete_data[:ntest].copy()
-    label = train_labels.status_group[:ntest].copy()
-    
+	#Preprocess the data and add rotated GPS coords to it
     for frame in [td, cd]:
-        pp.preprocess(frame, irr_feat)
+        pp.initial_preprocess(frame)
         added_num_feat = pp.process_GPS(frame)
     
     numer_feat += added_num_feat
-    cfl = list( set(cfl) - set(added_num_feat))
     
-    #Vectorize the target variables
-    
-    target = np.zeros(ntest,dtype=np.int)
+    #Vectorize the target variables    
+    target = np.zeros(td.shape[0],dtype=np.int)
     target[np.array(label=='non functional')] = 0
     target[np.array(label=='functional needs repair')] = 1
     target[np.array(label=='functional')] = 2
 
+	#Preprocessing begins here
     p_rare = 0.01
-    p_mi = 0.98
-    mode_mi = 'abs'
-    p_mi_hot = 0.98
-    mode_mi_hot = 'abs'
+    p_mi = 0.95
+    #Determines if you want to do MRMR for non-vectorized categorical features, or only after vectorization
+    #Switch this to False if you want more categorical features to boost oob_score by ~1%
+    middle_mrmr = True
     
-    #Weed out the values of categorical data which have occurence less that p_rare
+    #Remove the values of categorical data which have occurrence less that p_rare
     pp.filter_rare_values(td, cd, numer_feat, p_rare)
     
-    #Go through the categ features and remove the values which deliver low information gain
-    irr_out = pp.filter_irrelevant_values(td, cd, numer_feat, label, p_mi, mode_mi)
-            
-    #Now go through the remaining categorical features and retain only those which deliver 
-    #large information gains and low redundance within the set
-    mrmr_feat, mrmr_scores = pp.get_MRMR_features(td, numer_feat, label)
-    pp.filter_MRMR_features(td, numer_feat, mrmr_feat)
-    pp.filter_MRMR_features(cd, numer_feat, mrmr_feat)
-    #Only informative features remain, vectorizes them as store names as the new categorical features
+    #Go through the categorical features and remove the features and values which deliver low information gain
+	#(i.e., lower than (1-p_mi)*max_MI)
+    irr_out = pp.filter_irrelevant_values(td, cd, numer_feat, label, p_mi)
+      
+    if middle_mrmr:
+        #Now go through the remaining categorical features and retain only those which deliver 
+        #large information gains and low redundance within the set
+        mrmr_feat, mrmr_scores = pp.get_MRMR_features(td, numer_feat, label)
+        pp.filter_MRMR_features(td, numer_feat, mrmr_feat)
+        pp.filter_MRMR_features(cd, numer_feat, mrmr_feat)
+    else:
+        #The MRMR for entire features tends to eliminate a lot of features
+        mrmr_feat = list( set(td.columns) - set(numer_feat))
+	
+    #Vectorize remaining features
     new_cfl = pp.one_hot(td, mrmr_feat)
     pp.one_hot(cd, mrmr_feat)
     
-    #Now weed through the vectorized variables one more time
+    #Now go through the vectorized variables one more time
     hot_mrmr_feat, hot_mrmr_scores = pp.get_MRMR_features(td, numer_feat, label)
     pp.filter_MRMR_features(td, numer_feat, hot_mrmr_feat)
     pp.filter_MRMR_features(cd, numer_feat, hot_mrmr_feat)
-    pass
 
+    #list the remaining categorical features 
+    cfl_rem = list(set(td.columns) - set(numer_feat))
+	
     #Transform data to matrix
     data_matrix = td.as_matrix().astype(np.float);
     data_matrix_compete = cd.as_matrix().astype(np.float);
     
-    #Prepare for cross-validation
-    data_train, data_test, target_train, target_test = sk_split(data_matrix, target, test_size=0.1)
+    data_matrix.dump('processed_train_data')	
+    data_matrix_compete.dump('processed_compete_data')
+    target.dump('processed_targets')
+	##End of data preprocessing - next is forest creation and fitting
      
+     
+    #Here you can use numpy.load on the filenames specified before
     #Set up a forest predictor
-    forest = Forest(n_estimators=20, criterion='gini', n_jobs=4, \
-                    verbose=True, max_features=10, bootstrap=True, \
-                    min_samples_split=7, min_samples_leaf=1, oob_score=False)
+    forest = Forest(n_estimators=200, criterion='gini', n_jobs=4, \
+                    verbose=True, max_features='auto', bootstrap=True, \
+                    min_samples_split=7, min_samples_leaf=1, oob_score=True)
 
     forest.fit(data_matrix,target)
+	
+    print forest.oob_score_
     
     predictions = forest.predict(data_matrix_compete)
     
+	#Format the predictions to the submission requirements
     predictions_for_export = np.zeros(predictions.shape,dtype=np.object)
     predictions_for_export[predictions==0] = 'non functional'
     predictions_for_export[predictions==1] = 'functional needs repair'

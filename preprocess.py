@@ -1,17 +1,10 @@
-from sklearn.tree import DecisionTreeClassifier as Tree
-from sklearn.ensemble import RandomForestClassifier as Forest
-from sklearn.ensemble import ExtraTreesClassifier as EForest
-from sklearn.cross_validation import train_test_split as sk_split
-from sklearn.neighbors import KNeighborsClassifier as KNN
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import time
 import sys
 import re
 
 # Definitions for manual data processing
-def preprocess(input_frame, irrelevant_features=None):
+def initial_preprocess(input_frame, irrelevant_features=None):
     # Convert date recorded to days since the first recording
     s = input_frame['date_recorded']
     s = s.apply(lambda date_string: np.datetime64(date_string))
@@ -47,9 +40,6 @@ def process_GPS(input_frame, rotation_number=5):
     #Returnt the added numerical features
     return added_feats
             
-            
-    
-            
 def filter_rare_values(train_data_frame, compete_data_frame, numer_feat_list, freq_min=0.01):
     """The function analyzes the categorical features in train data to identify the rare elements and 
     replace corresponding entries by 'other'"""
@@ -57,7 +47,7 @@ def filter_rare_values(train_data_frame, compete_data_frame, numer_feat_list, fr
     categ_feat_list = list(set(train_data_frame.columns) - set(numer_feat_list))
     irrelevant_features =[]
     for category in categ_feat_list:
-        print "Computing rare values for feature {}".format(category)
+        #print "Computing rare values for feature {}".format(category)
         #For each category, create a list of values to replace by "other" based on train data values
         train_series = train_data_frame.loc[:,category]
         compete_series = compete_data_frame.loc[:,category]
@@ -165,7 +155,7 @@ def mutual_information(f1, f2):
     return mi
             
 def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_list, \
-                                   classification_series, thr=0.95, mode='rel'):
+                                   classification_series, thr=0.9, mode='abs'):
     """Function for filtering out irrelevant values from information viewpoint based on correlation btw train data and class labels
     
     In rel mode, for each feature use the same percentage cutoff; in abs mode use 
@@ -217,10 +207,10 @@ def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_li
         out_dict[name] = info_frame
         #Get the list of irrelevant values
         irrel_values = set(info_frame.index[info_frame.discard])
-        print "Value counts before plowing:\n"
-        print train_series.value_counts()
-        print "\nOut of them irrelevant are:\n"
-        print irrel_values
+        #print "Value counts before plowing:\n"
+        #print train_series.value_counts()
+        #print "\nOut of them irrelevant are:\n"
+        #print irrel_values
         
         #Change the irrelevant values to 'other'
         train_series = train_series.apply(lambda elem: 'other' if elem in irrel_values else elem)
@@ -228,8 +218,8 @@ def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_li
         
         #Now check if some features can be discarded altogether after plowing
         rv = train_series.value_counts()
-        print "For feature {} informative values are:".format(name)
-        print rv
+        #print "For feature {} informative values are:".format(name)
+        #print rv
         if ( (rv.shape[0] == 1) or ((rv.shape[0] == 2) and ('other' in rv.index) and ('was_nan' in rv.index)) ):
             #Then the feature does not have any information at all
             train_data_frame.drop(name, axis=1, inplace=True)
@@ -244,7 +234,7 @@ def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_li
     #Finally, return the dictionary storing the values discarded for each feature
     return out_dict
 
-def analyze_value_information(feature_series, classification_series, threshold = 0.9, mode = 'rel'):
+def analyze_value_information(feature_series, classification_series, threshold = 0.9, mode = 'abs'):
     """The mode can be either relative, discarding all features except first which push the information gain beyond thr*max,
     or absolute, when the values pushing the inf gain beyond max(inf_gain) - threshold"""
     
@@ -279,12 +269,17 @@ def filter_MRMR_features(input_frame, numer_feat_list, mrmr_feat_list):
     categ_feat_list = list(set(input_frame.columns) - set(numer_feat_list))
     for catfeat in categ_feat_list:
         if catfeat not in mrmr_feat_list:
-            print "MRMR: removing {}\n\n".format(catfeat)
+            #print "MRMR: removing {}\n\n".format(catfeat)
             input_frame.drop(catfeat, axis=1, inplace=True)
 
 
-def get_MRMR_features(train_data_frame, numer_feat_list, classification_labels, cutoff=0.65):
-    """Function returning the list of features with ratio of information gain to correlation higher than cutoff"""
+def get_MRMR_features(train_data_frame, numer_feat_list, classification_labels, mode='MIQ', cutoff=0.7):
+    """Function returning the list of relevant and non-redundant features according to selected criterion
+	
+	The possible choices for mode include 
+	mutual information quotient - MIQ: MI(candidate_feature, labels) / mean(MI(candidate_feature, selected_feat)), mutual information difference - MID: MI(candidate_feature, labels) - mean(MI(candidate_feature, selected_feat))
+	hybrid - MIH: MI(candidate_feature, labels) * (MIQ - 1)
+	The corresponding cutoffs need to be determined"""
 
     #Make a Series for mutual information with classification labels
     categ_feat_list = list(set(train_data_frame.columns) - set(numer_feat_list))
@@ -323,11 +318,17 @@ def get_MRMR_features(train_data_frame, numer_feat_list, classification_labels, 
         for rem in remain:
             #print rem
             crossinf.loc[rem, ac] = mutual_information(train_data_frame.loc[:,ac], train_data_frame.loc[:,rem])
-            #Now, for all remaining features, compute the ratio of mutual information with the classification
-            #to the average mutual information with the accepted features
+            #Now, for all remaining features, 
+			#compute the relevant criterion based on mutual information with the classification
+            #and the average mutual information with the accepted features
             #The former is a corresponding entry in MI series, and the latter is average of corresponding 
             #row of crossinf matrix
-            MQ[rem] = MI[rem] / crossinf.loc[rem, :].mean()
+            if mode == 'MIQ':
+				MQ[rem] = MI[rem] / crossinf.loc[rem, :].mean()
+            elif mode == 'MID':
+				MQ[rem] = MI[rem] - crossinf.loc[rem, :].mean()
+            elif mode == 'MIH':
+				MQ[rem] = MI[rem] * (MI[rem] / crossinf.loc[rem, :].mean() - 1)
 
         #New accepted candidate is the one with maximal entry in MQ    
         ac = MQ.argmax()
