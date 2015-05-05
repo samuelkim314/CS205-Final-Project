@@ -3,6 +3,7 @@ from sklearn.ensemble import RandomForestClassifier as Forest
 from sklearn.ensemble import ExtraTreesClassifier as EForest
 from sklearn.cross_validation import train_test_split as sk_split
 from sklearn.neighbors import KNeighborsClassifier as KNN
+import generate_GPS as gGPS
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -34,7 +35,7 @@ if __name__ == '__main__':
     for frame in [td, cd]:
         pp.initial_preprocess(frame)
         added_num_feat = pp.process_GPS(frame)
-    
+   
     numer_feat += added_num_feat
     
     #Vectorize the target variables    
@@ -43,12 +44,15 @@ if __name__ == '__main__':
     target[np.array(label=='functional needs repair')] = 1
     target[np.array(label=='functional')] = 2
 
+    added_features = gGPS.generate_GPS(td, target, cd)
+    numer_feat += added_features
+
 	#Preprocessing begins here
     p_rare = 0.01
     p_mi = 0.95
     #Determines if you want to do MRMR for non-vectorized categorical features, or only after vectorization
     #Switch this to False if you want more categorical features to boost oob_score by ~1%
-    middle_mrmr = True
+    middle_mrmr = False
     
     #Remove the values of categorical data which have occurrence less that p_rare
     pp.filter_rare_values(td, cd, numer_feat, p_rare)

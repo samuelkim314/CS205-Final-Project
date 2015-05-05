@@ -87,9 +87,6 @@ def generate_GPS(train_frame, train_classes, test_frame,
     
     # Compute functions for training data
     dists,neighbors = knn.kneighbors(return_distance=True)
-    print dists
-    print
-    print neighbors
     for i, generator in enumerate(generators):
         location_data = generator(dists, neighbors, train_classes)
         for j in range(3):
