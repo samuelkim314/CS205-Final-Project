@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#SBATCH -J P3b
+#SBATCH -n 64           #Number of cores needed
+#SBATCH -p holyseasgpu #Partition to submit to
+#SBATCH -o OUTPUT_P3b.lsf  #Output file
+#SBATCH -t 1000  #Runtime in minutes
+#SBATCH --mail-user=samuelkim@college.harvard.edu
+#SBATCH --mail-type=END  # The run ended
+
+mpiexec -n 1 python P2b.py 1 1
+mpiexec -n 2 python P2b.py 2 1
+mpiexec -n 4 python P2b.py 2 2
+mpiexec -n 8 python P2b.py 4 2
+mpiexec -n 16 python P2b.py 4 4
+mpiexec -n 32 python P2b.py 8 4
+mpiexec -n 64 python P2b.py 8 8
