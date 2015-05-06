@@ -10,13 +10,14 @@ class ForestParallel:
   estimators = []
   
   def __init__(self, n_cores=1, n_estimators=10, total_estimators=10, 
-      criterion='gini'):
+      criterion='gini', min_samples_split=2):
     self.n_cores = n_cores
     self.n_estimators = n_estimators #num trees to calculate at one time
     self.total_estimators = total_estimators #used for master-slave
       #load-balancing - should be divisible by n_estimators
     self.criterion = criterion
-    self.forest = Forest(n_estimators=n_estimators, criterion=criterion)
+    self.forest = Forest(n_estimators=n_estimators, criterion=criterion,
+      min_samples_split=min_samples_split)
   
   def fit(self, X, y):
     #distribute fitting task and gather all the estimators to all cores
@@ -43,7 +44,7 @@ class ForestParallel:
     temp = None  #buffer for estimators from single core
     
     #send out initial tasks to slaves
-    for i in xrange(1,size):
+    for i in xrange(1,self.size):
       self.comm.send(1, dest=i)
     
     #train a single tree to set the forest parameters for convenience
@@ -59,7 +60,7 @@ class ForestParallel:
       estimators.extend(temp) #add estimators to total list
     
     #close slaves by sending -1
-    for i in xrange(1,size):
+    for i in xrange(1,self.size):
       self.comm.send(-1, dest=i)
     #TODO: Bug: other cores don't successfully close because they are waiting
     #to send back their newest forest
