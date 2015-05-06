@@ -63,13 +63,13 @@ def filter_rare_values(train_data_frame, compete_data_frame, numer_feat_list, fr
             train_data_frame.drop(category, axis=1, inplace=True)
             compete_data_frame.drop(category, axis=1, inplace=True)
             irrelevant_features.append(category)
-            print "Dropping feature {}\n".format(category)
+            #print "Dropping feature {}\n".format(category)
         else:
             #Assign the modified series back to the data frame
             train_data_frame.loc[:,category] = train_series
             compete_data_frame.loc[:,category] = compete_series
             
-    print "\nAnalysis of feature rarity finished\n"
+    #print "\nAnalysis of feature rarity finished\n"
 
 def return_rare_values(train_data_series, freq_min=0.01):
     
@@ -173,8 +173,8 @@ def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_li
         
     #Sort and take the largest mutual information
     MI.sort(ascending=False)
-    print "Ranking of features according to mutual information with labels in train_data"
-    print MI
+    #print "Ranking of features according to mutual information with labels in train_data"
+    #print MI
     largest_MI = MI[0]
     #Discard the features for which the mutual information is smaller than the loss in it 
     #for the feature with largest MI
@@ -186,12 +186,12 @@ def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_li
             categ_feat_list.remove(feat)
             train_data_frame.drop(feat, axis=1, inplace=True)
             compete_data_frame.drop(feat, axis=1, inplace=True)
-            print "Removing feature {} with MI {} smaller than {}".format(feat, mi, delta)
+            #print "Removing feature {} with MI {} smaller than {}".format(feat, mi, delta)
     
     #In case the cutoff is expressed as a fixed percentage of the most informative feature
     #set the threshold accordingly
     if mode=='abs':
-        print "Absolute mode used, {}% of max MI is {}\n".format((1-thr)*100, delta)
+        #print "Absolute mode used, {}% of max MI is {}\n".format((1-thr)*100, delta)
         thr = delta
         
     #Iterate over remaining to remove irrelevant values there
@@ -199,7 +199,7 @@ def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_li
     #Frame with values, their information gains and if they are kept or not
     out_dict = {}
     for name in categ_feat_list:
-        print "Dealing with relevant feature {}".format(name)
+        #print "Dealing with relevant feature {}".format(name)
         #Use the infer_irr_values to get the list of values to discard
         train_series = train_data_frame.loc[:,name]
         compete_series = compete_data_frame.loc[:,name]
@@ -225,7 +225,7 @@ def filter_irrelevant_values(train_data_frame, compete_data_frame, numer_feat_li
             train_data_frame.drop(name, axis=1, inplace=True)
             compete_data_frame.drop(name, axis=1, inplace=True)
             categ_feat_list.remove(name)
-            print "Dropping feature {}\n".format(name) 
+            #print "Dropping feature {}\n".format(name) 
         else:
             #Assign the modified series back to the data frames
             train_data_frame.loc[:,name] = train_series
@@ -266,11 +266,11 @@ def analyze_value_information(feature_series, classification_series, threshold =
 def filter_MRMR_features(input_frame, numer_feat_list, mrmr_feat_list):
     """Remove the categorical features irrelevant from MRMR perspective from a data frame"""
     
-    categ_feat_list = list(set(input_frame.columns) - set(numer_feat_list))
-    for catfeat in categ_feat_list:
-        if catfeat not in mrmr_feat_list:
-            #print "MRMR: removing {}\n\n".format(catfeat)
-            input_frame.drop(catfeat, axis=1, inplace=True)
+    
+    categ_feat_set = set(input_frame.columns) - set(numer_feat_list)
+    removal_list = list( categ_feat_set - set(mrmr_feat_list))
+    #print "MRMR: removing {}\n\n".format(catfeat)
+    input_frame.drop(removal_list, axis=1, inplace=True)
 
 
 def get_MRMR_features(train_data_frame, numer_feat_list, classification_labels, mode='MIQ', cutoff=0.7):
@@ -285,7 +285,7 @@ def get_MRMR_features(train_data_frame, numer_feat_list, classification_labels, 
     categ_feat_list = list(set(train_data_frame.columns) - set(numer_feat_list))
     MI = pd.Series(np.zeros(len(categ_feat_list)), index=categ_feat_list)
     for feat in categ_feat_list:
-        print feat
+        #print feat
         MI[feat] = mutual_information(train_data_frame.loc[:,feat], classification_labels)
     #Sort and take the largest mutual information
     MI.sort(ascending=False)
@@ -334,9 +334,9 @@ def get_MRMR_features(train_data_frame, numer_feat_list, classification_labels, 
         ac = MQ.argmax()
         score = MQ.max()
         #print "MQ\n", MQ
-        print "New candidate is {} with score {}\n\n".format(ac, score)
+        #print "New candidate is {} with score {}\n\n".format(ac, score)
         if score < cutoff:
-            print "Omitting the last!\nStopping!\n"
+            #print "Omitting the last!\nStopping!\n"
             break
 
         #Update MQ and the sets
