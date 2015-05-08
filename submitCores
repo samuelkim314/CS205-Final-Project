@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#SBATCH -J ParForCores
+#SBATCH -n 32           #Number of cores needed
+#SBATCH -p holyseasgpu #Partition to submit to
+#SBATCH -o OUTPUTCores.lsf  #Output file
+#SBATCH -t 1000  #Runtime in minutes
+#SBATCH --mail-user=samuelkim@college.harvard.edu
+#SBATCH --mail-type=END  # The run ended
+#SBATCH --mem 10000
+
+mpiexec -n 4 python driver_benchmark.py 1024 4
+mpiexec -n 8 python driver_benchmark.py 1024 4
+mpiexec -n 16 python driver_benchmark.py 1024 4
+mpiexec -n 32 python driver_benchmark.py 1024 4
+mpiexec -n 64 python driver_benchmark.py 1024 4
