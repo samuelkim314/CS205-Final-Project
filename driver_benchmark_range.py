@@ -123,7 +123,7 @@ if __name__ == '__main__':
                     min_samples_split=7, min_samples_leaf=1, oob_score=True)"""
     if rank==0:
       print "Cores, total trees, trees per core, time"
-    for total in [512, 1024, 2048]:
+    for total in [1024, 2048]:
       for each in [1, 2, 4, 8, 16, 32, 64]:
         p_start = MPI.Wtime()
         forest = ForestPar(n_estimators=each, total_estimators=total, criterion='gini', \
