@@ -157,5 +157,11 @@ if __name__ == '__main__':
     np.savetxt("submit.csv",predictions_for_export,fmt='%s',delimiter=',',header='id,status_group')
     ##### REMEMBER: EDIT CSV FILE TO REMOVE HEADER'S LEADING # AND SPACE"""
     
-    #TODO: more graceful way of closing other cores
-    MPI.COMM_WORLD.Abort()
+    #TODO: more graceful way of closing other cores - isend!
+    #MPI.COMM_WORLD.Abort()
+    
+    temp = None
+    status = MPI.Status()
+    if rank==0:
+      for i in xrange(1,size):
+        comm.recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
