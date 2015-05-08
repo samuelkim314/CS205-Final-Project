@@ -135,6 +135,13 @@ if __name__ == '__main__':
         
         if rank==0:
           print size, total, each, runtime
+        
+        #cleaning up the cores
+        if rank==0:
+          temp = None
+          status = MPI.Status()
+          for i in xrange(1,size):
+            comm.recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
 
     #print forest.oob_score_
     
@@ -153,8 +160,4 @@ if __name__ == '__main__':
     #TODO: more graceful way of closing other cores - isend!
     #MPI.COMM_WORLD.Abort()
     
-    if rank==0:
-      temp = None
-      status = MPI.Status()
-      for i in xrange(1,size):
-        comm.recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
+    
