@@ -92,15 +92,6 @@ if __name__ == '__main__':
     data_matrix_compete.dump('processed_compete_data')
     target.dump('processed_targets')
   ##End of data preprocessing - next is forest creation and fitting"""
-    import sys
-  
-    # Get Px and Py from command line
-    try:
-      total = int(sys.argv[1])
-      each = int(sys.argv[2])
-    except:
-      print 'Usage: mpirun -n n_cores python driver_benchmark.py total each'
-      sys.exit()
     
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -132,17 +123,18 @@ if __name__ == '__main__':
                     min_samples_split=7, min_samples_leaf=1, oob_score=True)"""
     if rank==0:
       print "Cores, total trees, trees per core, time"
-    #for total in [512, 1024, 2048]:
-    #  for each in [1, 2, 4, 8, 16, 32, 64, 128]:
-    p_start = MPI.Wtime()
-    forest = ForestPar(n_estimators=each, total_estimators=total, criterion='gini', \
-                min_samples_split=7)
+    for total in [512, 1024, 2048]:
+      for each in [1, 2, 4, 8, 16, 32, 64]:
+        p_start = MPI.Wtime()
+        forest = ForestPar(n_estimators=each, total_estimators=total, criterion='gini', \
+                    min_samples_split=7)
 
-    forest.fitBalanced(data_matrix,target)
-    p_stop = MPI.Wtime()
-    runtime = p_stop - p_start  #broadcast time for training data
-    if rank==0:
-      print size, total, each, runtime
+        forest.fitBalanced(data_matrix,target)
+        p_stop = MPI.Wtime()
+        runtime = p_stop - p_start  #broadcast time for training data
+        
+        if rank==0:
+          print size, total, each, runtime
 
     #print forest.oob_score_
     
