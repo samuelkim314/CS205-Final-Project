@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#SBATCH -J ParForEven
+#SBATCH -n 64           #Number of cores needed
+#SBATCH -N 1 # Ensure that all cores are on one machine
+#SBATCH -p holyseasgpu #Partition to submit to
+#SBATCH -o OUTPUTEven.lsf  #Output file
+#SBATCH -t 10000  #Runtime in minutes
+#SBATCH --mail-user=samuelkim@college.harvard.edu
+#SBATCH --mail-type=END  # The run ended
+#SBATCH --mem 50000
+
+mpiexec -n 1 python driver_benchmark_even.py 2048
+mpiexec -n 2 python driver_benchmark_even.py 2048
+mpiexec -n 4 python driver_benchmark_even.py 2048
+mpiexec -n 8 python driver_benchmark_even.py 2048
+mpiexec -n 16 python driver_benchmark_even.py 2048
+mpiexec -n 32 python driver_benchmark_even.py 2048
+mpiexec -n 64 python driver_benchmark_even.py 2048
