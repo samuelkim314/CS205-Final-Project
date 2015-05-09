@@ -52,11 +52,11 @@ if __name__ == '__main__':
                     verbose=True, max_features='auto', bootstrap=True, \
                     min_samples_split=7, min_samples_leaf=1, oob_score=True)"""
     if rank==0:
-      print "Cores, total trees, trees per core, time"
+      print "Cores, total trees, time"
     #for total in [512, 1024, 2048]:
     #  for each in [1, 2, 4, 8, 16, 32, 64, 128]:
     p_start = MPI.Wtime()
-    forest = ForestPar(n_estimators=total, criterion='gini', \
+    forest = ForestPar(n_estimators=total/size, criterion='gini', \
                 min_samples_split=7)
 
     forest.fit(data_matrix,target)
