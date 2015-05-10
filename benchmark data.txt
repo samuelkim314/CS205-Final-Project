@@ -1,0 +1,130 @@
+Broadcast time: 0.199776887894
+Cores, total trees, trees per core, time
+4 1024 4 299.786542892
+Broadcast time: 44.7762470245
+Cores, total trees, trees per core, time
+8 1024 4 222.706298113
+Broadcast time: 309.088390112
+Cores, total trees, trees per core, time
+16 1024 4 121.071561098
+Broadcast time: 275.990267038
+Cores, total trees, trees per core, time
+32 1024 4 176.574473143
+Broadcast time: 380.175946951
+
+Broadcast time: 1187.79277706
+Cores, total trees, trees per core, time
+32 512 1 302.301357985
+32 512 2 86.4235570431
+32 512 4 84.9063978195
+32 512 8 37.967361927
+32 512 16 100.35849905
+32 512 32 175.191681862
+32 512 64 192.96213603
+
+Broadcast time: 603.789725065
+Cores, total trees, trees per core, time
+32 1024 1 262.35303688
+32 1024 2 131.937705994
+32 1024 4 75.2779610157
+32 1024 8 57.1708569527
+32 1024 16 77.7371170521
+32 1024 32 146.006808043
+
+Broadcast time: 30.9442708492
+Cores, total trees, trees per core, time
+32 1024 1 48.8744678497
+32 1024 2 31.5076041222
+32 1024 4 31.5412518978
+32 1024 8 35.1382949352
+32 1024 16 40.0500249863
+
+Broadcast time: 0.277437210083
+Cores, total trees, trees per core, time
+4 2048 4 394.530056
+Broadcast time: 0.384930849075
+Cores, total trees, trees per core, time
+8 2048 4 208.70669508
+Broadcast time: 264.830864906
+Cores, total trees, trees per core, time
+16 2048 4 166.296905994
+Broadcast time: 312.540188074
+Cores, total trees, trees per core, time
+32 2048 4 379.074524164
+Broadcast time: 721.364254951
+Cores, total trees, trees per core, time
+64 2048 4 644.693129063
+
+
+Broadcast time: 1109.03379607
+Cores, total trees, trees per core, time
+32 1024 1 722.042780161
+32 1024 2 181.269108057
+32 1024 4 124.473864079
+32 1024 8 70.4704830647
+32 1024 16 223.709838867
+32 1024 32 759.475545168
+32 1024 64 1000.13082814
+32 2048 1 72.0415289402
+32 2048 2 70.3543109894
+32 2048 4 70.4348990917
+32 2048 8 70.311950922
+32 2048 16 77.8909780979
+32 2048 32 204.111015081
+32 2048 64 942.643917084
+
+
+Broadcast time: 11.8273410797
+Cores, total trees, trees per core, time
+4 2048 4 445.507925987
+Broadcast time: 43.2546429634
+Cores, total trees, trees per core, time
+8 2048 4 210.55137682
+Broadcast time: 145.685007095
+Cores, total trees, trees per core, time
+16 2048 4 148.55525589
+
+Broadcast time: 421.587939978
+Cores, total trees, trees per core, time
+32 2048 4 239.259425163
+Broadcast time: 491.044023037
+Cores, total trees, trees per core, time
+64 2048 4 394.420785904
+
+Broadcast time: 12.7339091301
+Cores, total trees, trees per core, time
+4 2048 8 417.521364927
+Broadcast time: 45.6322879791
+Cores, total trees, trees per core, time
+8 2048 8 210.740585089
+Broadcast time: 151.991742134
+Cores, total trees, trees per core, time
+16 2048 8 142.342601061
+Broadcast time: 448.707775116
+Cores, total trees, trees per core, time
+32 2048 8 197.837253094
+Broadcast time: 487.934944868
+Cores, total trees, trees per core, time
+64 2048 8 257.555646896
+
+
+
+Broadcast time: 6.8337790966
+Cores, total trees, trees per core, time
+1 2048 1509.06259489
+Broadcast time: 1.63983488083
+Cores, total trees, time
+1 2048 1163.88256407
+srun: error: _server_read: fd 17 got error or unexpected eof reading header
+srun: error: step_launch_notify_io_failure: aborting, io error with slurmstepd on node 0
+Broadcast time: 2.2193300724
+Cores, total trees, time
+2 2048 639.363783836
+srun: error: _server_read: fd 18 got error or unexpected eof reading header
+srun: error: step_launch_notify_io_failure: aborting, io error with slurmstepd on node 0
+Broadcast time: 6.00069713593
+Cores, total trees, time
+4 2048 432.328116894
+Broadcast time: 33.6477210522
+Cores, total trees, time
+8 2048 491.60019803
