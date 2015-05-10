@@ -12,8 +12,12 @@ import sys
 import re
 import preprocess as pp
 
-
-    
+# Preprocessing: MRMR Parameters
+p_rare = 0.01  # Discard factors rarer than this
+p_mi = 0.95    # Accumulate factors up to this level of MI
+middle_mrmr = False # Use MRMR to eliminate features early for speed
+                    # at the cost of ~1% OOB accuracy   
+   
 if __name__ == '__main__':
     #Data import 
     train_data = pd.read_csv('train.csv')
@@ -48,11 +52,14 @@ if __name__ == '__main__':
     numer_feat += added_features
 
 	#Preprocessing begins here
-    p_rare = 0.01
-    p_mi = 0.95
+# RAH: Added to parameters above so TFs and HT can see them more easily
+#    p_rare = 0.01
+#    p_mi = 0.95
     #Determines if you want to do MRMR for non-vectorized categorical features, or only after vectorization
-    #Switch this to False if you want more categorical features to boost oob_score by ~1%
-    middle_mrmr = False
+
+# RAH: Added to top
+#    #Switch this to False if you want more categorical features to boost oob_score by ~1%
+#    middle_mrmr = False
     
     #Remove the values of categorical data which have occurrence less that p_rare
     pp.filter_rare_values(td, cd, numer_feat, p_rare)
@@ -90,7 +97,9 @@ if __name__ == '__main__':
     data_matrix.dump('processed_train_data')	
     data_matrix_compete.dump('processed_compete_data')
     target.dump('processed_targets')
-	##End of data preprocessing - next is forest creation and fitting
+	
+
+    ##End of data preprocessing - next is forest creation and fitting
      
      
     #Here you can use numpy.load on the filenames specified before
@@ -112,5 +121,8 @@ if __name__ == '__main__':
     predictions_for_export[predictions==2] = 'functional'
     predictions_for_export = np.array([compete_data.id.values, predictions_for_export]).T
     
-    np.savetxt("submit.csv",predictions_for_export,fmt='%s',delimiter=',',header='id,status_group')
+    np.savetxt("submit.csv",predictions_for_export,fmt='%s',delimiter=',',
+               comments='',header='id,status_group')
+    # RAH FIXME: comments='' should remove leading '# ' according to stackexchange
+    #            but this is untested
     ##### REMEMBER: EDIT CSV FILE TO REMOVE HEADER'S LEADING # AND SPACE
