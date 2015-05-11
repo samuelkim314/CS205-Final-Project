@@ -28,6 +28,12 @@ driver_parallel_ms.py
   Example: mpirun -n 4 python driver_parallel.py 2048 8
 
 -------------
+Dependencies
+-------------
+sklearn requires at least version 0.16.1
+  sklearn 15 and below has a different interface for KNeighbors
+  
+-------------
 Contents:
 -------------
 
