@@ -169,3 +169,14 @@ if __name__ == '__main__':
       status = MPI.Status()
       for i in xrange(1,size):
         comm.recv(temp, MPI.ANY_SOURCE, MPI.ANY_TAG, status)
+      predictions = forest.predict(data_matrix_compete)
+    
+    #Format the predictions to the submission requirements
+      predictions_for_export = np.zeros(predictions.shape,dtype=np.object)
+      predictions_for_export[predictions==0] = 'non functional'
+      predictions_for_export[predictions==1] = 'functional needs repair'
+      predictions_for_export[predictions==2] = 'functional'
+      predictions_for_export = np.array([compete_data.id.values, predictions_for_export]).T
+      
+      np.savetxt("submit.csv",predictions_for_export,fmt='%s',delimiter=',',
+                 comments='',header='id,status_group')
