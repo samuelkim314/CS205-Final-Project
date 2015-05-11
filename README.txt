@@ -1,3 +1,34 @@
+-------------
+Title
+-------------
+Predicting Water Well Statuses in Tanzania
+CS 205 Final Project
+Dmitry Vinichenko, Sam Kim, Robert Hoyt
+
+-------------
+Usage
+-------------
+driver.py
+  Example: python driver.py
+driver_parallel.py
+  Format: mpirun -n n_cores python driver_parallel.py total
+  Arguments:
+    n_cores: number of cores to use
+    total:  total number of trees in the random forest
+  Example: mpirun -n 4 python driver_parallel.py 2048
+driver_parallel_ms.py
+  Format: mpirun -n n_cores python driver_parallel.py total each
+  Arguments:
+    n_cores: number of cores to use
+    total:  total number of trees in the random forest
+    each:   number of trees in a single work unit for load balancing
+  Example: mpirun -n 4 python driver_parallel.py 2048 8
+
+-------------
 Contents:
+-------------
 
 driver_parallel.py:
+  Same as driver.py, but implemented in parallel.
+driver_parallel.py:
+  Same as driver_parallel.py, but implements load-balancing using master-slave configuration.
