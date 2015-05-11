@@ -1,14 +1,7 @@
-#from sklearn.tree import DecisionTreeClassifier as Tree
 from sklearn.ensemble import RandomForestClassifier as Forest
-#from sklearn.ensemble import ExtraTreesClassifier as EForest
-#from sklearn.cross_validation import train_test_split as sk_split
-#from sklearn.neighbors import KNeighborsClassifier as KNN
 import generate_GPS as gGPS
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
-#import time
-#import sys
 import re
 import preprocess as pp
 
@@ -40,10 +33,7 @@ if __name__ == '__main__':
 	#Preprocess the data and add rotated GPS coords to it
     for frame in [td, cd]:
         pp.initial_preprocess(frame)
-# RAH FIXME: Redundant with gGPS.generate_GPS?        added_num_feat = pp.process_GPS(frame)
    
-#    numer_feat += added_num_feat
-    
     #Vectorize the target variables    
     target = np.zeros(td.shape[0],dtype=np.int)
     target[np.array(label=='non functional')] = 0
@@ -54,16 +44,8 @@ if __name__ == '__main__':
     added_features = gGPS.generate_GPS(td, target, cd)
     numer_feat += added_features
 
-	#Preprocessing begins here
-# RAH: Added to parameters above so TFs and HT can see them more easily
-#    p_rare = 0.01
-#    p_mi = 0.95
-    #Determines if you want to do MRMR for non-vectorized categorical features, or only after vectorization
+    ### Preprocessing begins here
 
-# RAH: Added to top
-#    #Switch this to False if you want more categorical features to boost oob_score by ~1%
-#    middle_mrmr = False
-    
     #Remove the values of categorical data which have occurrence less that p_rare
     pp.filter_rare_values(td, cd, numer_feat, p_rare)
     
