@@ -39,3 +39,6 @@ driver_parallel.py:
   
 driver_parallel.py:
   Same as driver_parallel.py, but implements load-balancing using master-slave configuration.
+  
+ForestParallel.py:
+  Class that implements training random forests in parallel.
