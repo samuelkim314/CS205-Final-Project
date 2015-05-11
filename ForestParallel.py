@@ -11,6 +11,7 @@ class ForestParallel:
   
   def __init__(self, n_cores=1, n_estimators=10, total_estimators=10, 
       criterion='gini', min_samples_split=2):
+    """Initialize the parallel random forest."""
     self.n_cores = n_cores
     self.n_estimators = n_estimators #num trees to calculate at one time
     self.total_estimators = total_estimators #used for master-slave
@@ -20,6 +21,7 @@ class ForestParallel:
       min_samples_split=min_samples_split)
   
   def fit(self, X, y):
+    """Train the random forest in parallel."""
     #distribute fitting task and gather all the estimators to all cores
     self.forest.fit(X, y)
     #TODO: decide between gather and allgather
@@ -30,6 +32,7 @@ class ForestParallel:
     return self
   
   def fitBalanced(self, X, y):
+    """Train the random forest in parallel using load-balancing."""
     #fit using master-slave paradigm for load-balancing
     #gather all estimators to all cores
     if self.rank==0:
@@ -39,6 +42,7 @@ class ForestParallel:
     return self
   
   def master(self, X, y):
+    """Dynamically assign work to other cores for training random forest."""
     status = MPI.Status()
     estimators = []
     temp = None  #buffer for estimators from single core
@@ -71,6 +75,7 @@ class ForestParallel:
     return self
   
   def slave(self, X, y):
+    """Train a subset of the random forest."""
     while(True):
       ind = self.comm.recv(source=0)
       #print ind
@@ -83,7 +88,7 @@ class ForestParallel:
     return self
   
   def predict(self, X):
-    #predictions on just one core
+    """Make predictions on just one core."""
     if self.rank==0:
       predictions = self.forest.predict(X)
       return predictions
@@ -101,13 +106,14 @@ class ForestParallel:
       print predictions.shape
   
   def predict_proba(self, X):
-    #probability predictions on one core
+    """Make probability predictions on one core."""
     if self.rank==0:
       predictions = self.forest.predict_proba(X)
       return predictions
     return None
 
 def getData():
+  """Import the training data and labels to all cores."""
   #imports data and labels to all cores
   import pandas as pd
   
