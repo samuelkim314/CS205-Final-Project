@@ -46,6 +46,16 @@ driver_parallel.py:
 driver_parallel_ms.py:
   Same as driver_parallel.py, but implements load-balancing using master-slave configuration.
   
+-------------
+Supporting Files:
+-------------
+
+generate_GPS.py
+  Functions that support the preprocessing of GPS data and appending new columns to Pandas data frames.
+
+preprocess.py
+  Library of functions to support MRMR processing of categorical feature data.
+
 ForestParallel.py:
   Class that implements training random forests in parallel.
 
