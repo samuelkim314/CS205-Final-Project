@@ -1,17 +1,9 @@
-from sklearn.tree import DecisionTreeClassifier as Tree
 from sklearn.ensemble import RandomForestClassifier as Forest
-from sklearn.ensemble import ExtraTreesClassifier as EForest
-from sklearn.cross_validation import train_test_split as sk_split
-from sklearn.neighbors import KNeighborsClassifier as KNN
 import generate_GPS as gGPS
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import time
-import sys
 import re
 import preprocess as pp
-
 from ForestParallel import ForestParallel as ForestPar
 from mpi4py import MPI
 
@@ -148,21 +140,7 @@ if __name__ == '__main__':
       print size, total, each, runtime
 
     #print forest.oob_score_
-    
-    """predictions = forest.predict(data_matrix_compete)
-    
-  #Format the predictions to the submission requirements
-    predictions_for_export = np.zeros(predictions.shape,dtype=np.object)
-    predictions_for_export[predictions==0] = 'non functional'
-    predictions_for_export[predictions==1] = 'functional needs repair'
-    predictions_for_export[predictions==2] = 'functional'
-    predictions_for_export = np.array([compete_data.id.values, predictions_for_export]).T
-    
-    np.savetxt("submit.csv",predictions_for_export,fmt='%s',delimiter=',',header='id,status_group')
-    ##### REMEMBER: EDIT CSV FILE TO REMOVE HEADER'S LEADING # AND SPACE"""
-    
-    #TODO: more graceful way of closing other cores - isend!
-    #MPI.COMM_WORLD.Abort()
+
     
     if rank==0:
       temp = None

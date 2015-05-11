@@ -1,14 +1,7 @@
-from sklearn.tree import DecisionTreeClassifier as Tree
 from sklearn.ensemble import RandomForestClassifier as Forest
-from sklearn.ensemble import ExtraTreesClassifier as EForest
-from sklearn.cross_validation import train_test_split as sk_split
-from sklearn.neighbors import KNeighborsClassifier as KNN
 import generate_GPS as gGPS
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import time
-import sys
 import re
 import preprocess as pp
 
